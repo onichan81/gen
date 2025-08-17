@@ -1,4 +1,3 @@
-
 1. Basic Data Preprocessing for Generative AI 
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
@@ -12,11 +11,12 @@ print("Original Data:\n", data)
 scaler = MinMaxScaler()
 scaled_data = scaler.fit_transform(data)
 print("Scaled Data:\n", scaled_data)
-Output
-Original Data:
- [[131 170] [ 51 151] [140  12] [ 78 128] [ 10 230]]
-Scaled Data:
- [[0.93076923 0.72477064] [0.31538462 0.63761468][1.         0.        ] [0.52307692 0.53211009] [0.         1.        ]]
+
+
+
+
+
+
 
 
 
@@ -38,8 +38,16 @@ plt.xlabel("Data Values")
 plt.ylabel("Frequency")
 plt.legend()
 plt.show()
-Output:
- 
+
+
+
+
+
+
+
+
+
+
 3. TensorFlow Computation Graph with Eager Execution
 import tensorflow as tf
 
@@ -55,9 +63,13 @@ def multiply_tensors(x, y):
 result = multiply_tensors(a, b)
 print("Graph Mode Output:", result.numpy())
 
- Output:
-Eager Execution Output: [ 7. 10.]
-Graph Mode Output: [10. 21.]
+
+
+
+
+
+
+
 
 
 4. Word2Vec Embeddings
@@ -73,9 +85,17 @@ model = Word2Vec(sentences, vector_size=10, window=2, min_count=1, sg=1)
 print("Vector for 'learning':", model.wv['learning'])
 print("Most similar to 'learning':", model.wv.most_similar('learning'))
 
-Output:
-Vector for 'learning': [ 0.0023 -0.0018 ...]
-Most similar to 'learning': [(ai, 0.12), ('machine', 0.11), ...]
+
+
+
+
+
+
+
+
+
+
+
 
 5. GloVe Pre-trained Embeddings
 import gensim.downloader as api
@@ -85,9 +105,20 @@ glove_model = api.load("glove-wiki-gigaword-50")
 print("Vector for 'computer':", glove_model['computer'])
 print("Similarity between 'computer' and 'laptop':", glove_model.similarity('computer', 'laptop'))
 
-Output:
-Vector for 'computer': [ 0.21  0.14 ...]
-Similarity between 'computer' and 'laptop': 0.7721
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 6. BERT Embeddings with Transformers
 from transformers import BertTokenizer, BertModel
@@ -100,9 +131,16 @@ outputs = model(**inputs)
 
 print("BERT Output Shape:", outputs.last_hidden_state.shape)
 print("First token embedding:", outputs.last_hidden_state[0][0][:5])
-Output:
-BERT Output Shape: torch.Size([1, 7, 768])
-First token embedding: tensor([-0.12,  0.21, ...])
+
+
+
+
+
+
+
+
+
+
 
 7. FAISS Similarity Search
 import faiss
@@ -118,10 +156,17 @@ distances, indices = index.search(query, k=3)
 print("Query Vector:", query)
 print("Top 3 Nearest Indices:", indices)
 print("Distances:", distances)
-Output:
-Query Vector: [[0.41 0.72 ...]]
-Top 3 Nearest Indices: [[2 4 1]]
-Distances: [[0.13 0.28 0.31]]
+
+
+
+
+
+
+
+
+
+
+
 8. Self-Attention Mechanism
 import torch
 import torch.nn.functional as F
@@ -136,9 +181,19 @@ output = torch.matmul(weights, V)
 print("Attention Weights:", weights)
 print("Output:", output)
 
-Output:
-Attention Weights: tensor([[[0.32, 0.34, 0.34], ...]])
-Output: tensor([[[0.51, 0.44, ...]]])
+
+
+
+
+
+
+
+
+
+
+
+
+
 9. Simulating Diffusion Denoising
 import numpy as np
 import matplotlib.pyplot as plt
@@ -153,6 +208,14 @@ for step in range(1, 4):
     plt.imshow(image, cmap='gray')
     plt.title(f"Step {step}: Denoising")
     plt.show()
+
+
+
+
+
+
+
+    
 
 10. FID Calculation 
 from scipy.linalg import sqrtm
@@ -169,6 +232,6 @@ mu2, sigma2 = np.random.rand(3), np.eye(3)
 
 print("FID Score:", calculate_fid(mu1, sigma1, mu2, sigma2))
 
- Output:
+
 FID Score: 0.7623
 
