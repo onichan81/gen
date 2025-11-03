@@ -1,0 +1,28 @@
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Generate random Generative AI dataset
+np.random.seed(42)
+df = pd.DataFrame({
+    'creativity_score': np.random.uniform(5, 10, 30),
+    'coherence_score':  np.random.uniform(5, 10, 30),
+    'novelty_score':    np.random.uniform(5, 10, 30)
+})
+
+# --- 1. Histogram ---
+plt.hist(df['creativity_score'], bins=8, color='skyblue', edgecolor='black')
+plt.title("Histogram of Creativity Scores")
+plt.xlabel("Creativity Score"); plt.ylabel("Frequency")
+plt.show()
+
+# --- 2. Scatter Plot ---
+sns.scatterplot(x='creativity_score', y='coherence_score', data=df)
+plt.title("Creativity vs Coherence")
+plt.show()
+
+# --- 3. Correlation Heatmap ---
+sns.heatmap(df.corr(), annot=True, cmap='coolwarm')
+plt.title("Correlation Heatmap")
+plt.show()
