@@ -1,0 +1,32 @@
+#4
+#pip install gensim numpy faiss-cpu
+
+from gensim.models import Word2Vec
+import numpy as np
+import faiss
+
+# Small text corpus
+corpus = [
+    ["artificial", "intelligence", "is", "the", "future"],
+    ["machine", "learning", "is", "a", "subset", "of", "ai"],
+    ["deep", "learning", "uses", "neural", "networks"]
+]
+
+# Train Word2Vec model
+model = Word2Vec(sentences=corpus, vector_size=50, window=3, min_count=1, workers=2)
+
+# Extract word vectors
+words = list(model.wv.index_to_key)
+vectors = np.array([model.wv[w] for w in words]).astype("float32")
+
+# Create FAISS index
+index = faiss.IndexFlatL2(vectors.shape[1])
+index.add(vectors)
+
+# Query similar words
+query = np.array([model.wv["ai"]]).astype("float32")
+D, I = index.search(query, 5)
+
+# Display results
+for i in I[0]:
+    print(words[i])
