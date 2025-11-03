@@ -1,0 +1,53 @@
+# 8 
+
+# --- Install required libraries ---
+!pip install transformers datasets evaluate rouge_score nltk tf-kera
+
+# --- Imports ---
+from transformers import pipeline
+from datasets import load_dataset
+import evaluate
+import nltk
+nltk.download('punkt')
+
+# --- Load small subsets of datasets ---
+summ_dataset = load_dataset("cnn_dailymail", '3.0.0', split='test[:3]')
+qa_dataset = load_dataset("squad", split='validation[:3]')
+
+# --- Load pretrained models ---
+summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
+qa_model = pipeline("question-answering", model="distilbert-base-uncased-distilled-squad")
+
+# --- Summarization Task ---
+summ_inputs = [item['article'] for item in summ_dataset]
+summ_refs = [item['highlights'] for item in summ_dataset]
+
+summ_preds = [
+    summarizer(text, max_length=130, min_length=30, do_sample=False)[0]['summary_text']
+    for text in summ_inputs
+]
+
+# --- Question Answering Task ---
+qa_inputs = [{'question': item['question'], 'context': item['context']} for item in qa_dataset]
+qa_refs = [item['answers']['text'][0] for item in qa_dataset]
+qa_preds = [qa_model(q)['answer'] for q in qa_inputs]
+
+# --- Load Evaluators ---
+rouge = evaluate.load("rouge")
+bleu = evaluate.load("bleu")
+
+# --- Summarization Evaluation ---
+print("🧠 Summarization Evaluation")
+rouge_scores = rouge.compute(predictions=summ_preds, references=summ_refs)
+print("ROUGE:", rouge_scores)
+
+bleu_scores = bleu.compute(predictions=summ_preds, references=[[ref] for ref in summ_refs])
+print("BLEU:", bleu_scores)
+
+# --- Question Answering Evaluation ---
+print("\n💬 Question Answering Evaluation")
+rouge_scores_qa = rouge.compute(predictions=qa_preds, references=qa_refs)
+print("ROUGE:", rouge_scores_qa)
+
+bleu_scores_qa = bleu.compute(predictions=qa_preds, references=[[ref] for ref in qa_refs])
+print("BLEU:", bleu_scores_qa)
