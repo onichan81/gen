@@ -1,0 +1,66 @@
+# 9 
+pip install faiss-cpu sentence-transformers transformers torch
+
+# RAG with FAISS + sentence-transformers + small LM (distilgpt2)
+import faiss
+import numpy as np
+from sentence_transformers import SentenceTransformer
+from transformers import AutoTokenizer, AutoModelForCausalLM
+import warnings
+warnings.filterwarnings('ignore')
+
+# 1) Small document corpus (replace with your own)
+docs = [
+    "Paris is the capital and largest city of France.",
+    "The Eiffel Tower is a wrought-iron lattice tower in Paris, completed in 1889.",
+    "Python is a popular programming language used for AI, web dev, and data science.",
+    "FAISS is a library for efficient similarity search and clustering of dense vectors.",
+    "Transformers provide state-of-the-art models for NLP tasks like generation and classification."
+]
+
+# 2) Create embeddings for documents
+embedder = SentenceTransformer("all-MiniLM-L6-v2")   # small & fast
+doc_emb = embedder.encode(docs, convert_to_numpy=True, normalize_embeddings=True)  # normalized for cosine
+
+# 3) Build FAISS index (inner product on normalized vectors = cosine)
+d = doc_emb.shape[1]
+index = faiss.IndexFlatIP(d)
+index.add(doc_emb)                     # index now contains documents
+
+# helper to retrieve top-k docs for a query
+def retrieve(query, k=3):
+    q_emb = embedder.encode([query], convert_to_numpy=True, normalize_embeddings=True)
+    D, I = index.search(q_emb, k)      # D: scores, I: indices
+    return [docs[i] for i in I[0]], D[0]
+
+# 4) Load small LM for generation
+tokenizer = AutoTokenizer.from_pretrained("distilgpt2")
+model = AutoModelForCausalLM.from_pretrained("distilgpt2")
+if tokenizer.pad_token is None:
+    tokenizer.add_special_tokens({"pad_token": tokenizer.eos_token})
+    model.resize_token_embeddings(len(tokenizer))
+
+# 5) RAG pipeline: retrieve -> build prompt -> generate
+def rag_answer(query, k=3, max_length=150):
+    retrieved_docs, scores = retrieve(query, k=k)
+    context = "\n".join(f"- {d}" for d in retrieved_docs)
+    prompt = f"Context:\n{context}\n\nQuestion: {query}\nAnswer:"
+    inputs = tokenizer(prompt, return_tensors="pt")
+    outputs = model.generate(**inputs, max_length=max_length, do_sample=True, top_p=0.95, top_k=40, temperature=0.8)
+    ans = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    # Remove prompt prefix from generated text if present
+    return ans.split("Answer:")[-1].strip(), retrieved_docs, scores
+
+# 6) Example queries
+for q in [
+    "What is the Eiffel Tower?",
+    "Which library is good for fast similarity search?",
+    "Name a language used for AI and data science."
+]:
+    answer, docs_used, scores = rag_answer(q, k=2)
+    print("Q:", q)
+    print("Retrieved:", docs_used)
+    print("Scores:", scores)
+    print("A:", answer)
+    print("-"*60)
+
