@@ -1,0 +1,49 @@
+# 10 
+
+pip install transformers torch psutil
+
+
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
+import torch, torch.nn.utils.prune as prune
+import time, psutil
+import warnings
+warnings.filterwarnings('ignore')
+
+# Load pre-trained DistilBERT
+model_name = "distilbert-base-uncased"
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForSequenceClassification.from_pretrained(model_name)
+
+
+# Prepare example input
+text = "Artificial Intelligence improves human decision-making."
+inputs = tokenizer(text, return_tensors="pt")
+
+# ----- Original model performance -----
+start = time.time()
+_ = model(**inputs)
+normal_time = time.time() - start
+normal_mem = psutil.Process().memory_info().rss / (1024 * 1024)
+
+# ----- Apply pruning (remove 30% of small weights) -----
+for name, module in model.named_modules():
+    if isinstance(module, torch.nn.Linear):
+        prune.l1_unstructured(module, name="weight", amount=0.3)
+        prune.remove(module, "weight")
+
+# ----- Apply dynamic quantization -----
+quantized_model = torch.quantization.quantize_dynamic(
+    model, {torch.nn.Linear}, dtype=torch.qint8
+)
+
+
+# ----- Optimized model performance -----
+start = time.time()
+_ = quantized_model(**inputs)
+opt_time = time.time() - start
+opt_mem = psutil.Process().memory_info().rss / (1024 * 1024)
+
+
+# ----- Results -----
+print(f"Normal Model:    Time = {normal_time:.4f}s, Memory = {normal_mem:.1f} MB")
+print(f"Optimized Model: Time = {opt_time:.4f}s, Memory = {opt_mem:.1f} MB")
