@@ -1,0 +1,49 @@
+# 12
+import random
+import matplotlib.pyplot as plt
+
+# Environment setup
+actions = ["cooperate", "compete"]
+rewards = {
+    ("cooperate", "cooperate"): (3, 3),
+    ("cooperate", "compete"): (0, 5),
+    ("compete", "cooperate"): (5, 0),
+    ("compete", "compete"): (1, 1),
+}
+
+# Simple agent class
+class Agent:
+    def __init__(self, name):
+        self.name = name
+        self.score = 0
+
+    def decide(self):
+        return random.choice(actions)
+
+# Create agents
+A, B = Agent("Agent A"), Agent("Agent B")
+
+# Simulation loop
+rounds = 10
+a_scores, b_scores = [], []
+
+for i in range(rounds):
+    a1, a2 = A.decide(), B.decide()
+    r1, r2 = rewards[(a1, a2)]
+    A.score += r1
+    B.score += r2
+    a_scores.append(A.score)
+    b_scores.append(B.score)
+    print(f"Round {i+1}: {A.name}={a1}, {B.name}={a2} → ({r1},{r2})")
+
+# Final results
+print(f"\nFinal Scores → {A.name}:{A.score}, {B.name}:{B.score}")
+
+# Plot graph
+plt.plot(range(1, rounds+1), a_scores, label=A.name)
+plt.plot(range(1, rounds+1), b_scores, label=B.name)
+plt.xlabel("Rounds")
+plt.ylabel("Cumulative Score")
+plt.title("Multi-Agent Interaction Results")
+plt.legend()
+plt.show()
