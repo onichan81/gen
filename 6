@@ -1,0 +1,25 @@
+# 6
+
+pip install torch
+pip install diffusers transformers accelerate scipy
+
+import torch
+from diffusers import StableDiffusionPipeline
+import matplotlib.pyplot as plt
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
+pipe = StableDiffusionPipeline.from_pretrained(
+"CompVis/stable-diffusion-v1-4", torch_dtype=torch.float16 if device=="cuda" else
+torch.float32
+).to(device)
+
+prompt = "a cute robot holding a balloon in a garden"
+
+with torch.autocast("cuda") if device == "cuda" else torch.no_grad():
+  image = pipe(prompt).images[0]
+
+image.save("output.png")
+plt.imshow(image)
+plt.axis("off")
+plt.title("Generated Image")
+plt.show()
