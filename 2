@@ -1,1 +1,34 @@
+#2
 
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import MinMaxScaler
+
+# Sample dataset
+df = pd.DataFrame({
+    'image_id': ['img1', 'img2', 'img3', 'img4', 'img5'],
+    'width': [1024, 800, np.nan, 640, 1280],
+    'height': [768, 600, 480, np.nan, 960],
+    'color_mode': ['RGB', 'Grayscale', 'RGB', 'RGB', None],
+    'label': ['cat', 'dog', 'cat', 'bird', 'dog']
+})
+
+# --- 1. Handle missing numerical data (Fixed) ---
+df['width'] = df['width'].fillna(df['width'].median())
+df['height'] = df['height'].fillna(df['height'].median())
+
+# --- 2. Handle missing categorical data (Fixed) ---
+df['color_mode'] = df['color_mode'].fillna(df['color_mode'].mode().iloc[0])
+
+# --- 3. Normalize numerical features to [0,1] ---
+scaler = MinMaxScaler()
+df[['width_norm', 'height_norm']] = scaler.fit_transform(df[['width', 'height']])
+
+# --- 4. Encode categorical variables ---
+categorical_cols = [col for col in ['color_mode', 'label'] if col in df.columns]
+df = pd.get_dummies(df, columns=categorical_cols, dummy_na=False)
+
+# --- 5. Drop unused columns ---
+df.drop(columns=['image_id', 'width', 'height'], inplace=True)
+
+print(df)
