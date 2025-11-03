@@ -1,0 +1,43 @@
+# 5
+
+import tensorflow as tf
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Load MNIST dataset
+(x_train, _), _ = tf.keras.datasets.mnist.load_data()
+x_train = (x_train.astype("float32") / 127.5) - 1  # normalize to [-1, 1]
+x_train = np.expand_dims(x_train, -1)
+
+# Simple denoising model (like UNet, but smaller)
+def make_model():
+    inputs = tf.keras.Input(shape=(28, 28, 1))
+    x = tf.keras.layers.Conv2D(64, 3, padding="same", activation="relu")(inputs)
+    x = tf.keras.layers.Conv2D(64, 3, padding="same", activation="relu")(x)
+    outputs = tf.keras.layers.Conv2D(1, 3, padding="same")(x)
+    return tf.keras.Model(inputs, outputs)
+
+model = make_model()
+# Normally: model.load_weights('ddpm_mnist.h5')  # load pretrained weights
+
+# DDPM sampling (reverse denoising process)
+def sample(model, steps=200, img_size=28):
+    x = tf.random.normal((16, img_size, img_size, 1))  # start from noise
+    for t in reversed(range(steps)):
+        noise = tf.random.normal(tf.shape(x))
+        pred = model(x, training=False)
+        x = x - 0.02 * pred + 0.1 * noise  # simple reverse update
+    return x
+
+# Generate images
+images = sample(model)
+images = (images + 1) / 2  # rescale to [0,1]
+
+# Show generated images
+plt.figure(figsize=(4, 4))
+for i in range(16):
+    plt.subplot(4, 4, i + 1)
+    plt.imshow(images[i, :, :, 0], cmap="gray")
+    plt.axis("off")
+plt.suptitle("Generated MNIST-like Images")
+plt.show()
